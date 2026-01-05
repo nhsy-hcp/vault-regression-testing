@@ -95,7 +95,6 @@ jobs:
 
       - name: Upgrade Vault to new version and re-run regression suite
         run: |
-          export PATH=$PWD/.venv/bin:$PATH
           task vault:upgrade
 
       - name: Upload Test Results

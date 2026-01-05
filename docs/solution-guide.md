@@ -1,4 +1,4 @@
-# Vault Regression Testing Framework - Comprehensive Guide
+# Vault Regression Testing Framework - Solution Guide
 
 This document provides a detailed overview of the Vault Regression Testing Framework, covering its architectural design, implementation strategy, and a step-by-step walkthrough for environment setup and verification.
 
@@ -123,15 +123,9 @@ task test
 - **Stop**: `task down` stops the container.
 - **Full Clean**: `task clean` removes temporary files and Docker volumes (preserves `.venv`).
 
-### Troubleshooting
-
-- **Vault is sealed**: Run `task vault:unseal`.
-- **Terraform errors**: Ensure `VAULT_ADDR` and `VAULT_TOKEN` are set correctly (handled by `task terraform:apply`).
-- **Python errors**: Ensure the virtual environment is used (`task test` handles this).
-
 ---
 
 ## 6. Future Roadmap
 
-- **CI Enhancements**: Performance benchmarking in GitHub Actions.
 - **HA Mode Testing**: Implementing Consul or Raft for high-availability regression tests.
+- **Performance Testing**: Performance benchmarking using `vault-benchmark`.

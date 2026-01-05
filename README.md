@@ -1,31 +1,30 @@
 # Vault Regression Testing Framework
 
-[![CI](https://github.com/nhsy/vault-regression-testing/actions/workflows/ci.yml/badge.svg)](https://github.com/nhsy/vault-regression-testing/actions/workflows/ci.yml)
+[![CI](https://github.com/nhsy-hcp/vault-regression-testing/actions/workflows/ci.yml/badge.svg)](https://github.com/nhsy-hcp/vault-regression-testing/actions/workflows/ci.yml)
 
 A robust regression testing framework for HashiCorp Vault, designed to automate infrastructure setup, configuration, and verification using modern tools.
 
 ## Project Overview
 
-This project provides a Vault test environment running in Docker. It uses Terraform to configure Vault resources and Pytest to verify the setup against specific regression scenarios. All tasks are orchestrated through a `Taskfile`.
+This project provides a Vault test environment running in Docker. It uses Terraform to configure Vault resources and Pytest to verify the setup against specific regression scenarios. All tasks are orchestrated through `Taskfile` automation.
 
 ## Key Features
 
 - **Automation**: Fully automated initialization, unsealing, and token management.
 - **Testing**: Extended Pytest suite covering health checks, KV secrets, AppRole authentication, PKI certificates, security policies, and operational status.
 - **OIDC Authentication**: Native OIDC integration with GitHub Actions provided by Vault's JWT auth backend.
-- **Audit Logging**: Configurable file-based audit logging (enabled to stdout by default).
 - **LDAP Integration**: Integrated OpenLDAP environment for testing authentication, group mapping, and dynamic secrets.
 - **Database Secrets**: PostgreSQL integration with dynamic database credential generation and rotation testing.
-- **Code Quality**: Automated Python linting with `flake8` and formatting with `black` (integrated into the pipeline).
+- **Code Quality**: Automated Python linting with `flake8` and formatting with `black`.
 
 ## Prerequisites
 
 - **Docker & Docker Compose**
-- **Terraform**
-- **Go Task** (`task`)
-- **Python 3.14+**
-- **uv** (Package Manager)
+- **Go Task**
 - **jq**
+- **Python 3.14+**
+- **Terraform**
+- **uv** (Python Package Manager)
 
 You can verify your environment by running:
 
@@ -115,7 +114,7 @@ task all
 
 ## Documentation
 
-For a detailed analysis of the architecture, refer to the [Solution Outline](docs/solution-outline.md).
+For a detailed analysis of the architecture, refer to the [Solution Guide](docs/solution-guide.md).
 
 ---
 *Note: This framework is intended for regression testing and development environments.*
