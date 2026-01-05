@@ -17,7 +17,5 @@ def test_vault_version(vault_client):
     actual_version = health["version"]
 
     expected_versions = [v for v in [version, upgrade_version] if v]
-    if not expected_versions:
-        expected_versions = ["1.19"]
 
     assert any(actual_version.startswith(v) for v in expected_versions)
