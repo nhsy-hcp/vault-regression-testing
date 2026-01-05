@@ -13,9 +13,6 @@ load_dotenv()
 def tf_outputs():
     """Load outputs from Terraform state."""
     terraform_dir = Path(__file__).parent.parent / "terraform"
-    env = os.environ.copy()
-    if f"{os.getenv('HOME')}/bin" not in env.get("PATH", ""):
-        env["PATH"] = f"{env.get('PATH', '')}:{os.getenv('HOME')}/bin"
 
     try:
         result = subprocess.run(
@@ -24,8 +21,8 @@ def tf_outputs():
             capture_output=True,
             text=True,
             check=True,
-            env=env,
         )
+
         outputs = json.loads(result.stdout)
         return {key: value.get("value") for key, value in outputs.items()}
     except Exception as e:
