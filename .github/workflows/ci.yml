@@ -84,6 +84,9 @@ jobs:
           task lint
 
       - name: Start Services and Configure
+        env:
+          TF_VAR_github_org: ${{ github.repository_owner }}
+          TF_VAR_github_repository: ${{ github.event.repository.name }}
         run: |
           task up
           task init

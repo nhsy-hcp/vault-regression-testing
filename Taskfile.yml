@@ -164,6 +164,7 @@ tasks:
           echo "Failed to initialize Vault or empty output."
           exit 1
         fi
+    silent: true
 
   vault:unseal:
     desc: Unseal Vault

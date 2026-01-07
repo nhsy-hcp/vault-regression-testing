@@ -48,6 +48,7 @@ task prereqs
 ├── terraform/             # Vault resource management
 │   ├── main.tf            # Provider and core setup
 │   ├── variables.tf       # Configuration variables
+│   ├── terraform.tfvars.example # Example variable definitions
 │   ├── audit.tf           # Audit logging configuration
 │   ├── auth_oidc.tf       # OIDC configuration for GitHub Actions
 │   ├── auth_approle.tf    # AppRole configuration
@@ -77,7 +78,10 @@ task prereqs
 
 ### 1. Initialize and Run Everything
 
-First, set up the virtual environment (run once):
+First, set up the environment:
+
+1.  Copy `.env.example` to `.env` and fill in any required values.
+2.  Copy `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` and update the `github_org` and `github_repository` variables.
 
 ```bash
 task setup

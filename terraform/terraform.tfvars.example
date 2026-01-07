@@ -1,0 +1,3 @@
+# GitHub Configuration
+github_org         = "your-org-or-username"
+github_repository  = "vault-regression-testing"

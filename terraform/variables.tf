@@ -49,11 +49,9 @@ variable "pki_mount_path" {
 variable "github_org" {
   description = "GitHub Organization or User"
   type        = string
-  default     = "nhsy-hcp"
 }
 
 variable "github_repository" {
   description = "GitHub Repository Name"
   type        = string
-  default     = "vault-regression-testing"
 }
