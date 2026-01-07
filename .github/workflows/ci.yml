@@ -37,6 +37,9 @@ jobs:
         uses: arduino/setup-task@v2
         with:
           version: 3.x
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
           
       - name: Get Versions
         id: versions
@@ -84,13 +87,17 @@ jobs:
           task lint
 
       - name: Start Services and Configure
-        env:
-          TF_VAR_github_org: ${{ github.repository_owner }}
-          TF_VAR_github_repository: ${{ github.event.repository.name }}
         run: |
           task up
           task init
-          task terraform:apply
+
+      - name: Terraform apply
+        run: |
+          cd terraform
+          terraform init
+          source ./../.env
+          terraform apply -auto-approve -var "github_repository=${{ github.repository }}"
+          sleep 20
 
       - name: Run Tests
         run: |

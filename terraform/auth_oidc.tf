@@ -9,12 +9,12 @@ resource "vault_jwt_auth_backend_role" "github_actions" {
   backend   = vault_jwt_auth_backend.github_actions.path
   role_name = "github-actions"
 
-  bound_audiences = ["https://github.com/${var.github_org}/${var.github_repository}"]
+  bound_audiences = ["https://github.com/${var.github_repository}"]
 
   user_claim = "repository"
 
   bound_claims = {
-    repository = "${var.github_org}/${var.github_repository}"
+    repository = var.github_repository
   }
 
   role_type      = "jwt"

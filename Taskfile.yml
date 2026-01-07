@@ -195,7 +195,7 @@ tasks:
     cmds:
       - terraform init
       - source ./../.env && terraform apply -auto-approve
-      - sleep 10
+      - sleep 20
 
   terraform:destroy:
     desc: Destroy Terraform resources
@@ -220,7 +220,7 @@ tasks:
     desc: Cleanup all temporary files, virtual environments, and Docker resources
     cmds:
       - task: down
-      - sleep 5
+      - sleep 10
       - rm -rf {{.INIT_FILE}} terraform/.terraform terraform/terraform.tfstate terraform/terraform.tfstate.backup .pytest_cache outputs
       - |
         VOLUMES=$(docker volume ls -q -f name={{.PROJECT_NAME}})

@@ -46,12 +46,8 @@ variable "pki_mount_path" {
   default     = "pki"
 }
 
-variable "github_org" {
-  description = "GitHub Organization or User"
-  type        = string
-}
-
 variable "github_repository" {
-  description = "GitHub Repository Name"
+  description = "GitHub Org and Repository Name"
   type        = string
+  default     = "your-org/your-repo"
 }
