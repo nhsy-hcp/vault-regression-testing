@@ -1,6 +1,6 @@
 # Vault Regression Testing Framework
 
-[![CI](https://github.com/nhsy-hcp/vault-regression-testing/actions/workflows/ci.yml/badge.svg)](https://github.com/nhsy-hcp/vault-regression-testing/actions/workflows/ci.yml)
+[![regression-test](https://github.com/nhsy-hcp/vault-regression-testing/actions/workflows/regression-test.yml/badge.svg)](https://github.com/nhsy-hcp/vault-regression-testing/actions/workflows/regression-test.yml)
 
 A robust regression testing framework for HashiCorp Vault, designed to automate infrastructure setup, configuration, and verification using modern tools.
 

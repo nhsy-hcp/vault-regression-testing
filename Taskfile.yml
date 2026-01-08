@@ -4,16 +4,15 @@ dotenv: ['.env']
 
 vars:
   INIT_FILE: .vault_init.json
-  PROJECT_NAME: '{{.COMPOSE_PROJECT_NAME | default "vault-regression-testing"}}'
-  VAULT_CONTAINER: '{{.COMPOSE_PROJECT_NAME | default "vault-regression-testing"}}_vault'
-  LDAP_CONTAINER: '{{.COMPOSE_PROJECT_NAME | default "vault-regression-testing"}}_ldap'
-  POSTGRES_CONTAINER: '{{.COMPOSE_PROJECT_NAME | default "vault-regression-testing"}}_postgres'
+  CONTAINER_RUNTIME: '{{.CONTAINER_RUNTIME | default "docker"}}'
+  PROJECT_NAME:
+    sh: basename $(pwd)
 
 tasks:
   prereqs:
     desc: Check if all prerequisites are installed
     cmds:
-      - which docker
+      - which {{.CONTAINER_RUNTIME}}
       - which terraform
       - which jq
       - which curl
@@ -33,33 +32,14 @@ tasks:
   up:
     desc: Start Vault and LDAP containers and wait for readiness
     cmds:
-      - docker compose up -d
-      - |
-        . .env
-        echo "Waiting for Vault to be ready..."
-        for i in $(seq 1 30); do
-          if curl -s -o /dev/null $VAULT_ADDR/v1/sys/health; then
-            echo "Vault API is responding"
-            break
-          fi
-          sleep 1
-        done
-        echo "Waiting for LDAP to be ready..."
-        for i in $(seq 1 30); do
-          if docker exec {{.LDAP_CONTAINER}} ldapsearch -x -b "dc=example,dc=org" -D "cn=admin,dc=example,dc=org" -w adminpassword > /dev/null 2>&1; then
-            echo "LDAP is responding"
-            exit 0
-          fi
-          sleep 1
-        done
-        echo "Timeout waiting for services"
-        exit 1
+      - "{{.CONTAINER_RUNTIME}} compose up -d --wait"
     silent: true
 
   down:
     desc: Stop containers and remove volumes
     cmds:
-      - docker compose rm -vfs
+      - "{{.CONTAINER_RUNTIME}} compose rm -vfs"
+      - sleep 5
 
   init:
     desc: Initialize both LDAP and Vault
@@ -73,18 +53,18 @@ tasks:
   ldap:init:
     desc: Initialize LDAP with sample data
     cmds:
-      - docker exec {{.LDAP_CONTAINER}} ldapadd -x -D "cn=admin,dc=example,dc=org" -w adminpassword -f /ldap-example.ldif -c || true
+      - "{{.CONTAINER_RUNTIME}} compose exec ldap ldapadd -x -D \"cn=admin,dc=example,dc=org\" -w adminpassword -f /ldap-example.ldif -c || true"
 
   ldap:status:
     desc: Check LDAP status and list users
     cmds:
-      - docker exec {{.LDAP_CONTAINER}} ldapsearch -x -D "cn=admin,dc=example,dc=org" -w adminpassword -b "ou=People,dc=example,dc=org" "(objectClass=inetOrgPerson)" dn
+      - "{{.CONTAINER_RUNTIME}} compose exec ldap ldapsearch -x -D \"cn=admin,dc=example,dc=org\" -w adminpassword -b \"ou=People,dc=example,dc=org\" \"(objectClass=inetOrgPerson)\" dn"
 
   postgres:status:
     desc: Check PostgreSQL status and list databases
     cmds:
-      - docker exec {{.POSTGRES_CONTAINER}} psql -U vaultadmin -d vaultdb -c '\l'
-      - docker exec {{.POSTGRES_CONTAINER}} psql -U vaultadmin -d vaultdb -c '\du'
+      - "{{.CONTAINER_RUNTIME}} compose exec postgres psql -U vaultadmin -d vaultdb -c '\\l'"
+      - "{{.CONTAINER_RUNTIME}} compose exec postgres psql -U vaultadmin -d vaultdb -c '\\du'"
 
   postgres:test-readonly:
     desc: Test Vault dynamic readonly credentials for PostgreSQL
@@ -100,10 +80,10 @@ tasks:
         echo "Lease ID: $LEASE_ID"
         echo ""
         echo "Testing database connection with readonly credentials..."
-        docker exec {{.POSTGRES_CONTAINER}} psql -U $USERNAME -d vaultdb -c 'SELECT COUNT(*) FROM test_data;' || echo "Failed to connect"
+        {{.CONTAINER_RUNTIME}} compose exec postgres psql -U $USERNAME -d vaultdb -c 'SELECT COUNT(*) FROM test_data;' || echo "Failed to connect"
         echo ""
         echo "Testing write permissions (should fail)..."
-        docker exec {{.POSTGRES_CONTAINER}} psql -U $USERNAME -d vaultdb -c 'CREATE TABLE test_table (id INT);' && echo "ERROR: Should not have write access!" || echo "Correctly denied write access"
+        {{.CONTAINER_RUNTIME}} compose exec postgres psql -U $USERNAME -d vaultdb -c 'CREATE TABLE test_table (id INT);' && echo "ERROR: Should not have write access!" || echo "Correctly denied write access"
         echo ""
         echo "Revoking lease..."
         vault lease revoke $LEASE_ID
@@ -123,10 +103,10 @@ tasks:
         echo "Lease ID: $LEASE_ID"
         echo ""
         echo "Testing database connection with readwrite credentials..."
-        docker exec {{.POSTGRES_CONTAINER}} psql -U $USERNAME -d vaultdb -c 'SELECT COUNT(*) FROM test_data;' || echo "Failed to connect"
+        {{.CONTAINER_RUNTIME}} compose exec postgres psql -U $USERNAME -d vaultdb -c 'SELECT COUNT(*) FROM test_data;' || echo "Failed to connect"
         echo ""
         echo "Testing write permissions..."
-        docker exec {{.POSTGRES_CONTAINER}} psql -U $USERNAME -d vaultdb -c 'CREATE TABLE temp_test (id INT); INSERT INTO temp_test VALUES (1); DROP TABLE temp_test;' && echo "Write access confirmed" || echo "ERROR: Should have write access!"
+        {{.CONTAINER_RUNTIME}} compose exec postgres psql -U $USERNAME -d vaultdb -c 'CREATE TABLE temp_test (id INT); INSERT INTO temp_test VALUES (1); DROP TABLE temp_test;' && echo "Write access confirmed" || echo "ERROR: Should have write access!"
         echo ""
         echo "Revoking lease..."
         vault lease revoke $LEASE_ID
@@ -155,7 +135,7 @@ tasks:
             exit 0
           fi
         fi
-        docker exec -e VAULT_ADDR=$VAULT_ADDR {{.VAULT_CONTAINER}} vault operator init -format=json > {{.INIT_FILE}}
+        {{.CONTAINER_RUNTIME}} compose exec -e VAULT_ADDR=$VAULT_ADDR vault vault operator init -format=json > {{.INIT_FILE}}
         if [ -s {{.INIT_FILE}} ]; then
           ROOT_TOKEN=$(jq -r '.root_token' {{.INIT_FILE}})
           sed -i.bak "s/export VAULT_TOKEN=.*/export VAULT_TOKEN=$ROOT_TOKEN/" .env && rm .env.bak
@@ -174,12 +154,13 @@ tasks:
         if [ -f {{.INIT_FILE}} ]; then
           KEYS=$(jq -r '.unseal_keys_b64[]' {{.INIT_FILE}})
           for key in $KEYS; do
-            docker exec -e VAULT_ADDR=$VAULT_ADDR {{.VAULT_CONTAINER}} vault operator unseal $key
+            {{.CONTAINER_RUNTIME}} compose exec -e VAULT_ADDR=$VAULT_ADDR vault vault operator unseal $key
           done
         else
           echo "Init file missing. Cannot unseal."
           exit 1
         fi
+    silent: true
 
   vault:status:
     desc: Check Vault status
@@ -193,8 +174,8 @@ tasks:
     desc: Initialize and apply Terraform configuration
     dir: terraform
     cmds:
-      - terraform init
-      - source ./../.env && terraform apply -auto-approve
+      - terraform init -upgrade
+      - source ./../.env && terraform apply -auto-approve -parallelism=1
       - sleep 20
 
   terraform:destroy:
@@ -220,26 +201,31 @@ tasks:
     desc: Cleanup all temporary files, virtual environments, and Docker resources
     cmds:
       - task: down
-      - sleep 10
       - rm -rf {{.INIT_FILE}} terraform/.terraform terraform/terraform.tfstate terraform/terraform.tfstate.backup .pytest_cache outputs
       - |
-        VOLUMES=$(docker volume ls -q -f name={{.PROJECT_NAME}})
+        VOLUMES=$({{.CONTAINER_RUNTIME}} volume ls -q -f name={{.PROJECT_NAME}})
         if [ ! -z "$VOLUMES" ]; then
-          docker volume rm $VOLUMES 2>/dev/null || true
+          {{.CONTAINER_RUNTIME}} volume rm $VOLUMES 2>/dev/null || true
+          sleep 10
+        else
+          echo "No volumes to remove."
         fi
 
-  vault:upgrade:
-    aliases: [upgrade]
+        {{.CONTAINER_RUNTIME}} compose volumes
+    silent: true
+
+  upgrade:
     desc: Upgrade Vault version and run tests
     cmds:
       - |
         source .env
-        VAULT_VERSION=$VAULT_VERSION_UPGRADE docker compose up -d --force-recreate
+        VAULT_VERSION=$VAULT_VERSION_UPGRADE {{.CONTAINER_RUNTIME}} compose up -d --force-recreate --wait
         VAULT_VERSION=$VAULT_VERSION_UPGRADE task up
       - task: vault:unseal
       - task: vault:status
       - sleep 10
       - task: test
+    silent: true
 
   all:
     desc: Run everything

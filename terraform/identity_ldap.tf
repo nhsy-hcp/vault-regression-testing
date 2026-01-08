@@ -8,6 +8,8 @@ resource "vault_identity_group_alias" "developers" {
   name           = "developers"
   mount_accessor = vault_ldap_auth_backend.ldap.accessor
   canonical_id   = vault_identity_group.developers.id
+
+  depends_on = [vault_identity_group.developers]
 }
 
 resource "vault_identity_group" "admins" {
@@ -20,4 +22,6 @@ resource "vault_identity_group_alias" "admins" {
   name           = "vault-admins"
   mount_accessor = vault_ldap_auth_backend.ldap.accessor
   canonical_id   = vault_identity_group.admins.id
+
+  depends_on = [vault_identity_group.admins]
 }

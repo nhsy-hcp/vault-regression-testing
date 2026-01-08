@@ -12,4 +12,6 @@ resource "vault_kv_secret_v2" "test_secret" {
     api_key = "test-12345"
     debug   = "true"
   })
+
+  depends_on = [vault_mount.kv]
 }
