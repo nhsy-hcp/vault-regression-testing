@@ -13,6 +13,7 @@ tasks:
     desc: Check if all prerequisites are installed
     cmds:
       - which {{.CONTAINER_RUNTIME}}
+      - '{{.CONTAINER_RUNTIME}} info > /dev/null 2>&1 || (echo "Error: {{.CONTAINER_RUNTIME}} daemon is not running" && exit 1)'
       - which terraform
       - which jq
       - which curl
