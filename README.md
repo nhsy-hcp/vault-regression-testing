@@ -118,5 +118,9 @@ task all
 
 For a detailed analysis of the architecture, refer to the [Solution Guide](docs/solution-guide.md).
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ---
 *Note: This framework is intended for regression testing and development environments.*
